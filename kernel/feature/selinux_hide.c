@@ -1116,8 +1116,11 @@ static void *selinux_hide_symtab_search(struct symtab *s, const char *key)
 #endif
         if (!cmp)
             return node->datum;
-        if (cmp < 0)
-            break;
+        /* nezha: SELinux hashtab chains are prepend-ordered, not sorted, and
+         * the kernel's own hashtab_search walks the whole chain. Dropping the
+         * "cmp < 0 -> break" early-out (which assumed sorted chains) avoids a
+         * false-negative on hash collisions that would wrongly reject a valid
+         * stock symbol. Same hash + full-chain strcmp == kernel behaviour. */
         node = node->next;
     }
     return NULL;
